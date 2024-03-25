@@ -1,0 +1,29 @@
+extension [A](a: A)
+  def some: Option[A] = Some(a)
+
+object App extends IOApp.Simple:
+  def run =
+    val resource : Resource[IO, Textract[IO]] = for {
+      httpClient <- EmberClientBuilder.default[IO].build
+      awsEnv <- AwsEnvironment.default(httpClient, AwsRegion.EU_WEST_1 )
+      textract <- AwsClient(Textract, awsEnv)
+    } yield textract
+
+    val req = resource.use { xtract =>
+
+      xtract.startDocumentAnalysis(
+      documentLocation = DocumentLocation(
+        S3Object(
+          S3Bucket("foundry.ils").some,
+        ).some
+      ),
+      featureTypes = List(
+        FeatureType.TABLES
+        )
+      )
+    }
+
+    req.flatMap(IO.println)
+
+
+end App
